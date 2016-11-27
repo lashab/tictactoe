@@ -56,11 +56,17 @@ class Tictactoe {
     });
   }
 
+  /**
+   * Initialize tictactoe.
+   *
+   * @return {Object}
+   */
   init() {
     this
       .setCanvasSize()
       .addCanvasGroups()
-
+      .initCanvasGroups()
+      .addCanvasMouseDownEvent();
   }
 
   /**
@@ -122,10 +128,9 @@ class Tictactoe {
    * @return this
    */
   addCanvasGroups() {
-    // Get x.
-    var x = this.canvas.getWidth() / 3;
-    // Get y.
-    var y = this.canvas.getHeight() / 3;
+    const x = this.canvas.getWidth() / 3;
+    const y = this.canvas.getHeight() / 3;
+
     this.canvas.add(
       this.addCanvasGroup([
         this.addCanvasLine([x, 0, x, y]),
@@ -166,6 +171,66 @@ class Tictactoe {
     );
 
     return this;
+  }
+
+  addCanvasXSymbol(target) {
+    const [top, left, width, height] = [
+      target.top(),
+      target.left(),
+      target.width(),
+      target.height(),
+    ];
+
+    const gap = width / 4;
+
+    const xSymbol = this.addCanvasGroup([
+      this.addCanvasLine([left + gap, top + gap, left + width - gap, top + height - gap]),
+      this.addCanvasLine([left + width - gap, top + gap, left + gap, top + height - gap]),
+    ]);
+
+  }
+
+  addCanvasOSymbol() {
+
+  }
+
+  /**
+   * Add canvas mouse:down event.
+   *
+   * @return this
+   */
+  addCanvasMouseDownEvent() {
+    this.canvas.on({
+      'mouse:down': (e) => {
+        console.log(e.target);
+        //console.log(e.e.clientY);
+      }
+    });
+  }
+
+  /**
+   * Initialize canvas groups.
+   *
+   * @return this
+   */
+  initCanvasGroups() {
+    this.canvas.forEachObject((group, gid) => {
+      group.set({
+        gid: gid + 1,
+        symbol: NaN,
+        evented: true
+      });
+    });
+
+    return this;
+  }
+
+  addCanvasCircle() {
+
+  }
+
+  addCanvasX() {
+
   }
 
   addCanvasSquare() {
