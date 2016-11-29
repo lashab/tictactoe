@@ -10,9 +10,28 @@ class Tictactoe {
   constructor(canvas) {
     if (canvas.id !== '') {
       this.canvas = new fabric.Canvas(canvas.id)
+      this.symbol = 1;
     }
 
     this.init();
+  }
+
+  /**
+   * Combinations getter.
+   *
+   * @return {Object}
+   */
+  get combinations() {
+    return {
+      1: [0, 1, 2],
+      2: [3, 4, 5],
+      3: [6, 7, 8],
+      4: [0, 3, 6],
+      5: [1, 4, 7],
+      6: [2, 5, 8],
+      7: [0, 4, 8],
+      8: [2, 4, 6],
+    }
   }
 
   /**
@@ -57,9 +76,22 @@ class Tictactoe {
   }
 
   /**
-   * Initialize tictactoe.
+   * Fade-in default options getter.
    *
    * @return {Object}
+   */
+  get canvasFadeInAnimationDefaultOptions() {
+    return {
+      from: 0.5,
+      to: 1,
+      duration: 200
+    };
+  }
+
+  /**
+   * Initialize tictactoe.
+   *
+   * @return {Object} this
    */
   init() {
     this
@@ -67,12 +99,14 @@ class Tictactoe {
       .addCanvasGroups()
       .initCanvasGroups()
       .addCanvasMouseDownEvent();
+
+    return this;
   }
 
   /**
    * Set canvas size.
    *
-   * @param {Object} canvas
+   * @return {Object} this
    */
   setCanvasSize() {
     // Get window width.
@@ -123,9 +157,27 @@ class Tictactoe {
   }
 
   /**
+   * Add canvas fade-in animation.
+   *
+   * @param {Object} target
+   * @param {Object} options
+   *
+   * @return {Object} target
+   */ 
+  addCanvasFadeInAnimation(target, options = this.canvasFadeInAnimationDefaultOptions) {
+    target.set('opacity', options.from);
+    target.animate('opacity', options.to, {
+      duration: options.duration,
+      onChange: this.canvas.renderAll.bind(this.canvas)
+    });
+
+    return target;
+  }
+
+  /**
    * Add canvas groups.
    *
-   * @return this
+   * @return {Object} this
    */
   addCanvasGroups() {
     const x = this.canvas.getWidth() / 3;
@@ -173,25 +225,50 @@ class Tictactoe {
     return this;
   }
 
+  /**
+   * Add canvas X symbol.
+   *
+   * @param {Object} target
+   *
+   * @return {void}
+   */
   addCanvasXSymbol(target) {
-    const [top, left, width, height] = [
-      target.top(),
-      target.left(),
-      target.width(),
-      target.height(),
+    const [top, left, width, height, gap] = [
+      target.getTop(),
+      target.getLeft(),
+      target.getWidth(),
+      target.getHeight(),
+      target.getWidth() / 4,
     ];
-
-    const gap = width / 4;
 
     const xSymbol = this.addCanvasGroup([
       this.addCanvasLine([left + gap, top + gap, left + width - gap, top + height - gap]),
       this.addCanvasLine([left + width - gap, top + gap, left + gap, top + height - gap]),
     ]);
 
+    this.canvas.add(this.addCanvasFadeInAnimation(xSymbol));
   }
 
-  addCanvasOSymbol() {
+ /**
+   * Add canvas O symbol.
+   *
+   * @param {Object} target
+   *
+   * @return {void}
+   */
+  addCanvasOSymbol(target) {
+    const [center, radius] = [
+      target.getPointByOrigin('center', 'center'),
+      target.getWidth() / 3,
+    ];
 
+    const oSymbol = this.addCanvasCircle({
+      top: center.x,
+      left: center.y,
+      radius: radius,
+    });
+
+    this.canvas.add(this.addCanvasFadeInAnimation(oSymbol));
   }
 
   /**
@@ -202,8 +279,15 @@ class Tictactoe {
   addCanvasMouseDownEvent() {
     this.canvas.on({
       'mouse:down': (e) => {
-        console.log(e.target);
-        //console.log(e.e.clientY);
+        const target = e.target;
+        let targets = [];
+        // Get target group id.
+        const gid = target.get('gid');
+        //const target = e.target;
+
+        if (this.symbol === 1) {
+          this.addCanvasXSymbol(target);
+        }
       }
     });
   }
@@ -224,27 +308,6 @@ class Tictactoe {
 
     return this;
   }
-
-  addCanvasCircle() {
-
-  }
-
-  addCanvasX() {
-
-  }
-
-  addCanvasSquare() {
-
-  }
-
-  addCanvasCircle() {
-
-  }
-
-  addCanvasCrossOut() {
-
-  }
-
 
 
 }
