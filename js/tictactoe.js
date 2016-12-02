@@ -1,6 +1,6 @@
 'use strict';
 
-class Tictactoe {
+class TicTacToe {
 
   /**
    * Constructor.
@@ -10,10 +10,11 @@ class Tictactoe {
   constructor(canvas) {
     if (canvas.id !== '') {
       this.canvas = new fabric.Canvas(canvas.id)
-      this.symbol = 1;
-    }
+      this.canvasSymbol = true;
+      this.canvasGroupsSize = 8;
 
-    this.init();
+      this.init();
+    }
   }
 
   /**
@@ -23,14 +24,14 @@ class Tictactoe {
    */
   get combinations() {
     return {
-      1: [0, 1, 2],
-      2: [3, 4, 5],
-      3: [6, 7, 8],
-      4: [0, 3, 6],
-      5: [1, 4, 7],
-      6: [2, 5, 8],
-      7: [0, 4, 8],
-      8: [2, 4, 6],
+      0: [0, 1, 2],
+      1: [3, 4, 5],
+      2: [6, 7, 8],
+      3: [0, 3, 6],
+      4: [1, 4, 7],
+      5: [2, 5, 8],
+      6: [0, 4, 8],
+      7: [2, 4, 6],
     }
   }
 
@@ -89,16 +90,33 @@ class Tictactoe {
   }
 
   /**
-   * Initialize tictactoe.
+   * Initialize Tic Tac Toe.
    *
    * @return {Object} this
    */
   init() {
-    this
-      .setCanvasSize()
-      .addCanvasGroups()
-      .initCanvasGroups()
-      .addCanvasMouseDownEvent();
+    this.setCanvasSize().addCanvasGroups().addCanvasMouseDownEvent();
+
+    this.canvas.forEachObject((canvasObject, index) => {
+      this.setCanvasObjectProperty(canvasObject, {
+        group: index,
+        symbol: NaN,
+        evented: true
+      });
+    });
+
+    return this;
+  }
+
+  /**
+   * Set canvas object properties.
+   *
+   * @param {Object} properties
+   *
+   * @return {Object} this
+   */
+  setCanvasObjectProperty(canvasObject, properties = {}) {
+    canvasObject.set(properties);
 
     return this;
   }
@@ -230,7 +248,7 @@ class Tictactoe {
    *
    * @param {Object} target
    *
-   * @return {void}
+   * @return {Object} this
    */
   addCanvasXSymbol(target) {
     const [top, left, width, height, gap] = [
@@ -247,6 +265,8 @@ class Tictactoe {
     ]);
 
     this.canvas.add(this.addCanvasFadeInAnimation(xSymbol));
+
+    return this;
   }
 
  /**
@@ -254,7 +274,7 @@ class Tictactoe {
    *
    * @param {Object} target
    *
-   * @return {void}
+   * @return {Object} this
    */
   addCanvasOSymbol(target) {
     const [center, radius] = [
@@ -263,51 +283,165 @@ class Tictactoe {
     ];
 
     const oSymbol = this.addCanvasCircle({
-      top: center.x,
-      left: center.y,
+      top: center.y,
+      left: center.x,
       radius: radius,
     });
 
     this.canvas.add(this.addCanvasFadeInAnimation(oSymbol));
+
+    return this;
+  }
+
+ /**
+   * Add canvas cross out.
+   *
+   * @param {Object} combination
+   *
+   * @return {Object} this
+   */
+  addCanvasCrossOut(combination) {
+    const [a, b, c] = [
+      combination[0],
+      combination[2],
+      combination[2] - combination[0],
+    ];
+
+    const [FGroup, LGroup,] = [
+      this.canvas.item(a),
+      this.canvas.item(b),
+    ];
+
+    const [FWGroup, LWGroup, FHGroup, LHGroup, FCGroup, LCGroup,] = [
+      FGroup.getWidth() / 2.5,
+      LGroup.getWidth() / 2.5,
+      FGroup.getHeight() / 2.5,
+      LGroup.getHeight() / 2.5,
+      FGroup.getPointByOrigin('center', 'center'),
+      LGroup.getPointByOrigin('center', 'center'),
+    ];
+
+    let coordinates = {};
+
+    if (c === 2) {
+      coordinates = {
+        x1: FCGroup.x - FWGroup,
+        y1: FCGroup.y,
+        x2: LCGroup.x + LWGroup,
+        y2: LCGroup.y
+      };
+    }
+    else if (c === 4) {
+      coordinates = {
+        x1: FCGroup.x + FWGroup,
+        y1: FCGroup.y - FHGroup,
+        x2: LCGroup.x - LWGroup,
+        y2: LCGroup.y + LHGroup
+      };
+    }
+    else if (c === 6) {
+      coordinates = {
+        x1: FCGroup.x,
+        y1: FCGroup.y - FHGroup,
+        x2: LCGroup.x,
+        y2: LCGroup.y + LHGroup
+      };
+    }
+    else if (c === 8) {
+      coordinates = {
+        x1: FCGroup.x - FWGroup,
+        y1: FCGroup.y - FHGroup,
+        x2: LCGroup.x + LWGroup,
+        y2: LCGroup.y + LHGroup
+      };
+    }
+
+    this.canvas.add(this.addCanvasGroup([this.addCanvasLine([coordinates.x1, coordinates.y1, coordinates.x2, coordinates.y2])]));
+
+
+    return this;
   }
 
   /**
    * Add canvas mouse:down event.
    *
-   * @return this
+   * @return {Object} this
    */
   addCanvasMouseDownEvent() {
     this.canvas.on({
       'mouse:down': (e) => {
-        const target = e.target;
-        let targets = [];
-        // Get target group id.
-        const gid = target.get('gid');
-        //const target = e.target;
+        let [i, targets, win] = [
+          this.canvasGroupsSize,
+          [],
+          false,
+        ];
 
-        if (this.symbol === 1) {
-          this.addCanvasXSymbol(target);
+        const [target, group] = [
+          e.target,
+          e.target.get('group'),
+        ];
+
+        this.canvasSymbol ? this.addCanvasXSymbol(target) : this.addCanvasOSymbol(target);
+
+        this.setCanvasObjectProperty(target, {
+          'symbol': this.canvasSymbol
+        });
+
+        while (i !== -1) {
+          const canvasSymbol = this.canvas.item(i).get('symbol');
+
+          if (isNaN(canvasSymbol)) {
+            targets.push(canvasSymbol);
+          }
+
+          i--;
         }
-      }
-    });
-  }
 
-  /**
-   * Initialize canvas groups.
-   *
-   * @return this
-   */
-  initCanvasGroups() {
-    this.canvas.forEachObject((group, gid) => {
-      group.set({
-        gid: gid + 1,
-        symbol: NaN,
-        evented: true
-      });
+        for (const j in this.combinations) {
+          const combination = this.combinations[j];
+          const a = this.canvas.item(combination[0]).get('symbol');
+          const b = this.canvas.item(combination[1]).get('symbol');
+          var c = this.canvas.item(combination[2]).get('symbol');
+          if ((!isNaN(a) && !isNaN(b) && !isNaN(c)) && (a === b && b === c)) {
+            win = true;
+            this.addCanvasCrossOut(combination).restart();
+          }
+        }
+
+        if (!targets.length && !win) {
+          this.restart();
+        }
+
+        this.canvasSymbol = !this.canvasSymbol;
+      }
     });
 
     return this;
   }
 
+  /**
+   * Restart Tic Tac Toe
+   *
+   * @return {Object} this
+   */
+  restart() {
+    setTimeout(() => {
+      let i = this.canvas.size() - 1;
+      while (i !== this.canvasGroupsSize) {
+        this.canvas.fxRemove(this.canvas.item(i));
+        i--;
+      }
 
-}
+    this.canvas.forEachObject((canvasObject, index) => {
+      this.setCanvasObjectProperty(canvasObject, {
+        group: index,
+        symbol: NaN,
+        evented: true
+      });
+    });
+    }, 1000);
+
+    return this;
+  }
+
+};
