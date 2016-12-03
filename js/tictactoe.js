@@ -9,7 +9,12 @@ class TicTacToe {
    */
   constructor(canvas) {
     if (canvas.id !== '') {
-      this.canvas = new fabric.Canvas(canvas.id)
+      this.canvas = new fabric.Canvas(canvas.id);
+      this.canvas.hoverCursor = 'default';
+      this.canvas.isDrawingMode = false;
+      this.canvas.selection = false;
+      this.canvas.selectionBorderColor = '#fff';
+      this.canvas.selectionLineWidth = 0;
       this.canvasSymbol = true;
       this.canvasGroupsSize = 8;
 
@@ -43,7 +48,7 @@ class TicTacToe {
   get canvasLineDefaultOptions() {
     return {
       stroke: 'black',
-      strokeWidth: 1,
+      strokeWidth: 10,
       selectable: false,
       evented: false,
     }
@@ -73,6 +78,9 @@ class TicTacToe {
       hasControls: false,
       lockMovementX: true,
       lockMovementY: true,
+      hasRotatingPoint: false,
+      originX: 'center',
+      originY: 'center',
     });
   }
 
@@ -170,8 +178,8 @@ class TicTacToe {
    *
    * @return {Object}
    */  
-  addCanvasGroup(group) {
-    return new fabric.Group(group, this.canvasGroupDefaultOptions);
+  addCanvasGroup(group, options) {
+    return new fabric.Group(group, Object.assign({}, this.canvasGroupDefaultOptions, options));
   }
 
   /**
@@ -251,18 +259,22 @@ class TicTacToe {
    * @return {Object} this
    */
   addCanvasXSymbol(target) {
-    const [top, left, width, height, gap] = [
+    const [top, left, width, height, gap, center] = [
       target.getTop(),
       target.getLeft(),
       target.getWidth(),
       target.getHeight(),
       target.getWidth() / 4,
+      target.getPointByOrigin('center', 'center'),
     ];
 
     const xSymbol = this.addCanvasGroup([
       this.addCanvasLine([left + gap, top + gap, left + width - gap, top + height - gap]),
       this.addCanvasLine([left + width - gap, top + gap, left + gap, top + height - gap]),
-    ]);
+    ], {
+      top: center.y,
+      left: center.x,
+    });
 
     this.canvas.add(this.addCanvasFadeInAnimation(xSymbol));
 
