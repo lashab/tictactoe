@@ -9,12 +9,9 @@ class TicTacToe {
    */
   constructor(canvas) {
     if (canvas.id !== '') {
+      fabric.Object.prototype.originX = fabric.Object.prototype.originY = 'center';
       this.canvas = new fabric.Canvas(canvas.id);
       this.canvas.hoverCursor = 'default';
-      this.canvas.isDrawingMode = false;
-      this.canvas.selection = false;
-      this.canvas.selectionBorderColor = '#fff';
-      this.canvas.selectionLineWidth = 0;
       this.canvasSymbol = true;
       this.canvasGroupsSize = 8;
 
@@ -60,7 +57,9 @@ class TicTacToe {
    * @return {Object}
    */
   get canvasCircleDefaulOptions() {
-    return Object.assign({}, this.canvasLineDefaultOptions, {
+    return Object.assign({}, {
+      stroke: 'black',
+      strokeWidth: 10,
       fill: '#fff',
       originX: 'center',
       originY: 'center',
@@ -73,12 +72,11 @@ class TicTacToe {
    * @return {Object}
    */
   get canvasGroupDefaultOptions() {
-    return Object.assign({}, this.canvasLineDefaultOptions, {
+    return Object.assign({}, {
       hasBorders: false,
       hasControls: false,
       lockMovementX: true,
       lockMovementY: true,
-      hasRotatingPoint: false,
       originX: 'center',
       originY: 'center',
     });
@@ -156,8 +154,8 @@ class TicTacToe {
    *
    * @return {Object}
    */
-  addCanvasLine(coordinates) {
-    return new fabric.Line(coordinates, this.canvasLineDefaultOptions);
+  addCanvasLine(coordinates, options) {
+    return new fabric.Line(coordinates, Object.assign({}, this.canvasLineDefaultOptions, options));
   }
 
   /**
@@ -219,7 +217,7 @@ class TicTacToe {
         this.addCanvasLine([x * 2, y, x, y])
       ]),
       this.addCanvasGroup([
-        this.addCanvasLine([x * 3, 0, x * 3, y]),
+        this.addCanvasLine([x * 3, 0, x * 3, y], { opacity: 0 }),
         this.addCanvasLine([x * 3, y, x * 2, y])
       ]),
       this.addCanvasGroup([
@@ -231,7 +229,7 @@ class TicTacToe {
         this.addCanvasLine([x, y * 2, x * 2, y * 2])
       ]),
       this.addCanvasGroup([
-        this.addCanvasLine([x * 3, y, x * 3, y * 2]),
+        this.addCanvasLine([x * 3, y, x * 3, y * 2], { opacity: 0 }),
         this.addCanvasLine([x * 3, y * 2, x * 2, y * 2])
       ]),
       this.addCanvasGroup([
@@ -243,7 +241,7 @@ class TicTacToe {
         this.addCanvasLine([x, y * 3, x * 2, y * 3])
       ]),
       this.addCanvasGroup([
-        this.addCanvasLine([x * 3, y * 2, x * 3, y * 3]),
+        this.addCanvasLine([x * 3, y * 2, x * 3, y * 3], { opacity: 0 }),
         this.addCanvasLine([x * 2, y * 3, x * 3, y * 3])
       ])
     );
