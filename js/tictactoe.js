@@ -12,7 +12,11 @@ class TicTacToe {
       fabric.Object.prototype.originX = fabric.Object.prototype.originY = 'center';
       this.canvas = new fabric.Canvas(canvas.id);
       this.canvas.hoverCursor = 'default';
-      this.canvasSymbol = true;
+      this.canvas.selection = false;
+      this.symbol = true;
+      this.computer = false;
+      this.over = false;
+      this.wins = false;
       this.canvasGroupsSize = 8;
 
       this.init();
@@ -63,6 +67,7 @@ class TicTacToe {
       fill: '#fff',
       originX: 'center',
       originY: 'center',
+      evented: false,
     });
   }
 
@@ -79,6 +84,7 @@ class TicTacToe {
       lockMovementY: true,
       originX: 'center',
       originY: 'center',
+      evented: false,
     });
   }
 
@@ -234,15 +240,15 @@ class TicTacToe {
       ]),
       this.addCanvasGroup([
         this.addCanvasLine([x, y * 2, x, y * 3]),
-        this.addCanvasLine([0, y * 3, x, y * 3])
+        this.addCanvasLine([0, y * 3, x, y * 3], { opacity: 0 })
       ]),
       this.addCanvasGroup([
         this.addCanvasLine([x * 2, y * 2, x * 2, y * 3]),
-        this.addCanvasLine([x, y * 3, x * 2, y * 3])
+        this.addCanvasLine([x, y * 3, x * 2, y * 3], { opacity: 0 })
       ]),
       this.addCanvasGroup([
         this.addCanvasLine([x * 3, y * 2, x * 3, y * 3], { opacity: 0 }),
-        this.addCanvasLine([x * 2, y * 3, x * 3, y * 3])
+        this.addCanvasLine([x * 2, y * 3, x * 3, y * 3], { opacity: 0 })
       ])
     );
 
@@ -368,7 +374,6 @@ class TicTacToe {
 
     this.canvas.add(this.addCanvasGroup([this.addCanvasLine([coordinates.x1, coordinates.y1, coordinates.x2, coordinates.y2])]));
 
-
     return this;
   }
 
@@ -377,13 +382,12 @@ class TicTacToe {
    *
    * @return {Object} this
    */
-  addCanvasMouseDownEvent() {
+  addCanvasMouseDownEvent(callback = null) {
     this.canvas.on({
       'mouse:down': (e) => {
-        let [i, targets, win] = [
+        let [i, targets] = [
           this.canvasGroupsSize,
           [],
-          false,
         ];
 
         const [target, group] = [
@@ -391,17 +395,22 @@ class TicTacToe {
           e.target.get('group'),
         ];
 
-        this.canvasSymbol ? this.addCanvasXSymbol(target) : this.addCanvasOSymbol(target);
+        this.symbol ? this.addCanvasXSymbol(target) : this.addCanvasOSymbol(target);
 
-        this.setCanvasObjectProperty(target, {
-          'symbol': this.canvasSymbol
+        // this.setCanvasObjectProperty(target, {
+        //   'symbol': this.symbol,
+        // });
+
+        target.set({
+          'symbol': this.symbol,
+          'evented': false,
         });
 
         while (i !== -1) {
-          const canvasSymbol = this.canvas.item(i).get('symbol');
+          const symbol = this.canvas.item(i).get('symbol');
 
-          if (isNaN(canvasSymbol)) {
-            targets.push(canvasSymbol);
+          if (isNaN(symbol)) {
+            targets.push(symbol);
           }
 
           i--;
@@ -413,16 +422,36 @@ class TicTacToe {
           const b = this.canvas.item(combination[1]).get('symbol');
           var c = this.canvas.item(combination[2]).get('symbol');
           if ((!isNaN(a) && !isNaN(b) && !isNaN(c)) && (a === b && b === c)) {
-            win = true;
-            this.addCanvasCrossOut(combination).restart();
+            this.wins = true;
+            this.addCanvasCrossOut(combination);
           }
         }
 
-        if (!targets.length && !win) {
+        if (this.wins || (!targets.length && !this.wins)) {
+          this.over = true;
           this.restart();
         }
 
-        this.canvasSymbol = !this.canvasSymbol;
+        this.symbol = !this.symbol;
+        this.computer = !this.computer;
+
+        if (this.computer && !this.over) {
+          let availables = [];
+
+          this.canvas.forEachObject((object) => {
+            if ('symbol' in object && isNaN(object.symbol)) {
+              availables.push(object.group);
+            }
+          });
+
+          const rand = availables[Math.floor(Math.random() * availables.length)];
+
+          setTimeout(() => {
+            this.canvas.trigger('mouse:down', {
+              target: this.canvas.item(rand),
+            });
+          }, 1000);
+        }
       }
     });
 
