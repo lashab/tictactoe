@@ -15,8 +15,6 @@ class TicTacToe {
       this.canvas.selection = false;
       this.symbol = true;
       this.computer = false;
-      this.over = false;
-      this.wins = false;
       this.canvasGroupsSize = 8;
 
       this.init();
@@ -42,11 +40,11 @@ class TicTacToe {
   }
 
   /**
-   * Line default options getter.
+   * Shape default options getter.
    *
    * @return {Object}
    */
-  get canvasLineDefaultOptions() {
+  get canvasShapeDefaultOptions() {
     return {
       stroke: 'black',
       strokeWidth: 10,
@@ -56,18 +54,24 @@ class TicTacToe {
   }
 
   /**
+   * Line default options getter.
+   *
+   * @return {Object}
+   */
+  get canvasLineDefaultOptions() {
+    return Object.assign({}, this.canvasShapeDefaultOptions);
+  }
+
+  /**
    * Circle default options getter.
    *
    * @return {Object}
    */
   get canvasCircleDefaulOptions() {
-    return Object.assign({}, {
-      stroke: 'black',
-      strokeWidth: 10,
+    return Object.assign({}, this.canvasShapeDefaultOptions, {
       fill: '#fff',
       originX: 'center',
       originY: 'center',
-      evented: false,
     });
   }
 
@@ -77,14 +81,9 @@ class TicTacToe {
    * @return {Object}
    */
   get canvasGroupDefaultOptions() {
-    return Object.assign({}, {
-      hasBorders: false,
-      hasControls: false,
-      lockMovementX: true,
-      lockMovementY: true,
+    return Object.assign({}, this.canvasShapeDefaultOptions, {
       originX: 'center',
       originY: 'center',
-      evented: false,
     });
   }
 
@@ -107,28 +106,28 @@ class TicTacToe {
    * @return {Object} this
    */
   init() {
-    this.setCanvasSize().addCanvasGroups().addCanvasMouseDownEvent();
-
-    this.canvas.forEachObject((canvasObject, index) => {
-      this.setCanvasObjectProperty(canvasObject, {
-        group: index,
-        symbol: NaN,
-        evented: true
-      });
-    });
+    this
+      .setCanvasSize()
+      .addCanvasGroups()
+      .addCanvasGroupObjectProperties()
+      .addCanvasMouseDownEvent();
 
     return this;
   }
 
   /**
-   * Set canvas object properties.
-   *
-   * @param {Object} properties
+   * Add canvas group object properties.
    *
    * @return {Object} this
    */
-  setCanvasObjectProperty(canvasObject, properties = {}) {
-    canvasObject.set(properties);
+  addCanvasGroupObjectProperties() {
+    this.canvas.forEachObject((object, key) => {
+      object.set({
+        group: key,
+        symbol: NaN,
+        evented: true,
+      });
+    });
 
     return this;
   }
@@ -253,6 +252,29 @@ class TicTacToe {
     );
 
     return this;
+  }
+
+  /**
+   * Get canvas available groups.
+   *
+   * @param {Function} callback
+   *
+   * @return {Object} groups
+   */
+  getCanvasAvailableGroups(callback) {
+    let groups = [];
+
+    this.canvas.forEachObject((object) => {
+      if ('symbol' in object && isNaN(object.symbol)) {
+        if (typeof callback === 'function') {
+          callback(object);
+        }
+
+        groups.push(object);
+      }
+    });
+
+    return groups;
   }
 
   /**
@@ -382,28 +404,31 @@ class TicTacToe {
    *
    * @return {Object} this
    */
-  addCanvasMouseDownEvent(callback = null) {
+  addCanvasMouseDownEvent() {
     this.canvas.on({
       'mouse:down': (e) => {
-        let [i, targets] = [
+        e.evented = e.evented || false;
+
+        let [i, targets, win, over] = [
           this.canvasGroupsSize,
           [],
+          false,
+          false,
         ];
 
         const [target, group] = [
           e.target,
-          e.target.get('group'),
         ];
 
         this.symbol ? this.addCanvasXSymbol(target) : this.addCanvasOSymbol(target);
 
-        // this.setCanvasObjectProperty(target, {
-        //   'symbol': this.symbol,
-        // });
-
         target.set({
-          'symbol': this.symbol,
-          'evented': false,
+          symbol: this.symbol,
+          evented: false,
+        });
+
+        this.getCanvasAvailableGroups((group) => {
+          group.set('evented', e.evented);
         });
 
         while (i !== -1) {
@@ -422,20 +447,20 @@ class TicTacToe {
           const b = this.canvas.item(combination[1]).get('symbol');
           var c = this.canvas.item(combination[2]).get('symbol');
           if ((!isNaN(a) && !isNaN(b) && !isNaN(c)) && (a === b && b === c)) {
-            this.wins = true;
+            win = true;
             this.addCanvasCrossOut(combination);
           }
         }
 
-        if (this.wins || (!targets.length && !this.wins)) {
-          this.over = true;
+        if (win || (!targets.length && !win)) {
+          over = true;
           this.restart();
         }
 
         this.symbol = !this.symbol;
         this.computer = !this.computer;
 
-        if (this.computer && !this.over) {
+        if (this.computer && !over) {
           let availables = [];
 
           this.canvas.forEachObject((object) => {
@@ -444,11 +469,10 @@ class TicTacToe {
             }
           });
 
-          const rand = availables[Math.floor(Math.random() * availables.length)];
-
           setTimeout(() => {
             this.canvas.trigger('mouse:down', {
-              target: this.canvas.item(rand),
+              evented: true,
+              target: this.canvas.item(availables[Math.floor(Math.random() * availables.length)]),
             });
           }, 1000);
         }
@@ -471,13 +495,8 @@ class TicTacToe {
         i--;
       }
 
-    this.canvas.forEachObject((canvasObject, index) => {
-      this.setCanvasObjectProperty(canvasObject, {
-        group: index,
-        symbol: NaN,
-        evented: true
-      });
-    });
+      this.addCanvasGroupObjectProperties();
+
     }, 1000);
 
     return this;
