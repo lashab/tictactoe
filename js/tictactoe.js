@@ -456,9 +456,11 @@ class TicTacToe {
           over = true;
           this.restart();
         }
+        else {
+          this.computer = !this.computer;
+        }
 
         this.symbol = !this.symbol;
-        this.computer = !this.computer;
 
         if (this.computer && !over) {
           let availables = [];
@@ -496,6 +498,14 @@ class TicTacToe {
       }
 
       this.addCanvasGroupObjectProperties();
+      if (this.computer) {
+          setTimeout(() => {
+            this.canvas.trigger('mouse:down', {
+              evented: true,
+              target: this.canvas.item(3),
+            });
+          }, 1000);
+      }
 
     }, 1000);
 
