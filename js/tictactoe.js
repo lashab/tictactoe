@@ -1,11 +1,14 @@
 'use strict';
 
-class TicTacToe {
+/* global fabric */
+/* exported Tictactoe */
+
+class Tictactoe {
 
   /**
    * Constructor.
    *
-   * @param {Object} canvas
+   * @param {object} canvas
    */
   constructor(canvas) {
     if (canvas.id !== '') {
@@ -15,7 +18,7 @@ class TicTacToe {
       this.canvas.selection = false;
       this.symbol = true;
       this.computer = false;
-      this.canvasGroupsSize = 8;
+      this.size = 8;
 
       this.init();
     }
@@ -24,7 +27,7 @@ class TicTacToe {
   /**
    * Combinations getter.
    *
-   * @return {Object}
+   * @return {object}
    */
   get combinations() {
     return {
@@ -42,7 +45,7 @@ class TicTacToe {
   /**
    * Shape default options getter.
    *
-   * @return {Object}
+   * @return {object}
    */
   get canvasShapeDefaultOptions() {
     return {
@@ -56,7 +59,7 @@ class TicTacToe {
   /**
    * Line default options getter.
    *
-   * @return {Object}
+   * @return {object}
    */
   get canvasLineDefaultOptions() {
     return Object.assign({}, this.canvasShapeDefaultOptions);
@@ -65,7 +68,7 @@ class TicTacToe {
   /**
    * Circle default options getter.
    *
-   * @return {Object}
+   * @return {object}
    */
   get canvasCircleDefaulOptions() {
     return Object.assign({}, this.canvasShapeDefaultOptions, {
@@ -78,7 +81,7 @@ class TicTacToe {
   /**
    * Group default options getter.
    *
-   * @return {Object}
+   * @return {object}
    */
   get canvasGroupDefaultOptions() {
     return Object.assign({}, this.canvasShapeDefaultOptions, {
@@ -90,7 +93,7 @@ class TicTacToe {
   /**
    * Fade-in default options getter.
    *
-   * @return {Object}
+   * @return {object}
    */
   get canvasFadeInAnimationDefaultOptions() {
     return {
@@ -103,7 +106,7 @@ class TicTacToe {
   /**
    * Initialize Tic Tac Toe.
    *
-   * @return {Object} this
+   * @return {object} this
    */
   init() {
     this
@@ -118,7 +121,7 @@ class TicTacToe {
   /**
    * Add canvas group object properties.
    *
-   * @return {Object} this
+   * @return {object} this
    */
   addCanvasGroupObjectProperties() {
     this.canvas.forEachObject((object, key) => {
@@ -135,7 +138,7 @@ class TicTacToe {
   /**
    * Set canvas size.
    *
-   * @return {Object} this
+   * @return {object} this
    */
   setCanvasSize() {
     // Get window width.
@@ -155,9 +158,9 @@ class TicTacToe {
   /**
    * Add canvas line.
    *
-   * @param {Object} coordinates
+   * @param {object} coordinates
    *
-   * @return {Object}
+   * @return {object}
    */
   addCanvasLine(coordinates, options) {
     return new fabric.Line(coordinates, Object.assign({}, this.canvasLineDefaultOptions, options));
@@ -166,9 +169,9 @@ class TicTacToe {
   /**
    * Add canvas circle.
    *
-   * @param {Object} options
+   * @param {object} options
    *
-   * @return {Object}
+   * @return {object}
    */
   addCanvasCircle(options) {
     return new fabric.Circle(Object.assign({}, this.canvasCircleDefaulOptions, options));
@@ -177,10 +180,10 @@ class TicTacToe {
   /**
    * Add canvas group.
    *
-   * @param {Object} group
+   * @param {object} group
    *
-   * @return {Object}
-   */  
+   * @return {object}
+   */
   addCanvasGroup(group, options) {
     return new fabric.Group(group, Object.assign({}, this.canvasGroupDefaultOptions, options));
   }
@@ -188,11 +191,11 @@ class TicTacToe {
   /**
    * Add canvas fade-in animation.
    *
-   * @param {Object} target
-   * @param {Object} options
+   * @param {object} target
+   * @param {object} options
    *
-   * @return {Object} target
-   */ 
+   * @return {object} target
+   */
   addCanvasFadeInAnimation(target, options = this.canvasFadeInAnimationDefaultOptions) {
     target.set('opacity', options.from);
     target.animate('opacity', options.to, {
@@ -257,9 +260,9 @@ class TicTacToe {
   /**
    * Get canvas available groups.
    *
-   * @param {Function} callback
+   * @param {function} callback
    *
-   * @return {Object} groups
+   * @return {object} groups
    */
   getCanvasAvailableGroups(callback) {
     let groups = [];
@@ -280,9 +283,9 @@ class TicTacToe {
   /**
    * Add canvas X symbol.
    *
-   * @param {Object} target
+   * @param {object} target
    *
-   * @return {Object} this
+   * @return {object} this
    */
   addCanvasXSymbol(target) {
     const [top, left, width, height, gap, center] = [
@@ -310,9 +313,9 @@ class TicTacToe {
  /**
    * Add canvas O symbol.
    *
-   * @param {Object} target
+   * @param {object} target
    *
-   * @return {Object} this
+   * @return {object} this
    */
   addCanvasOSymbol(target) {
     const [center, radius] = [
@@ -334,9 +337,9 @@ class TicTacToe {
  /**
    * Add canvas cross out.
    *
-   * @param {Object} combination
+   * @param {object} combination
    *
-   * @return {Object} this
+   * @return {object} this
    */
   addCanvasCrossOut(combination) {
     const [a, b, c] = [
@@ -345,12 +348,12 @@ class TicTacToe {
       combination[2] - combination[0],
     ];
 
-    const [FGroup, LGroup,] = [
+    const [FGroup, LGroup] = [
       this.canvas.item(a),
       this.canvas.item(b),
     ];
 
-    const [FWGroup, LWGroup, FHGroup, LHGroup, FCGroup, LCGroup,] = [
+    const [FWGroup, LWGroup, FHGroup, LHGroup, FCGroup, LCGroup] = [
       FGroup.getWidth() / 2.5,
       LGroup.getWidth() / 2.5,
       FGroup.getHeight() / 2.5,
@@ -402,7 +405,7 @@ class TicTacToe {
   /**
    * Add canvas mouse:down event.
    *
-   * @return {Object} this
+   * @return {object} this
    */
   addCanvasMouseDownEvent() {
     this.canvas.on({
@@ -410,15 +413,13 @@ class TicTacToe {
         e.evented = e.evented || false;
 
         let [i, targets, win, over] = [
-          this.canvasGroupsSize,
+          this.size,
           [],
           false,
           false,
         ];
 
-        const [target, group] = [
-          e.target,
-        ];
+        const target = e.target;
 
         this.symbol ? this.addCanvasXSymbol(target) : this.addCanvasOSymbol(target);
 
@@ -487,24 +488,26 @@ class TicTacToe {
   /**
    * Restart Tic Tac Toe
    *
-   * @return {Object} this
+   * @return {object} this
    */
   restart() {
     setTimeout(() => {
       let i = this.canvas.size() - 1;
-      while (i !== this.canvasGroupsSize) {
+      while (i !== this.size) {
         this.canvas.fxRemove(this.canvas.item(i));
         i--;
       }
 
       this.addCanvasGroupObjectProperties();
+      this.symbol = true;
+
       if (this.computer) {
-          setTimeout(() => {
-            this.canvas.trigger('mouse:down', {
-              evented: true,
-              target: this.canvas.item(3),
-            });
-          }, 1000);
+        setTimeout(() => {
+          this.canvas.trigger('mouse:down', {
+            evented: true,
+            target: this.canvas.item(Math.floor((Math.random() * 8))),
+          });
+        }, 1000);
       }
 
     }, 1000);
@@ -512,4 +515,4 @@ class TicTacToe {
     return this;
   }
 
-};
+}
