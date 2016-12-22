@@ -1,0 +1,24 @@
+{
+  "name": "tictactoe",
+  "version": "0.1.0",
+  "description": "Tictactoe game",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lashab/tictactoe.git"
+  },
+  "keywords": [
+    "tictactoe"
+  ],
+  "author": "Lasha Badashvili",
+  "homepage": "https://github.com/lashab/tictactoe#readme",
+  "scripts": {
+    "test": "node_modules/.bin/eslint js/tictactoe.js"
+  },
+  "devDependencies": {
+    "eslint": "^3.12.2",
+    "eslint-config-standard": "^6.2.1",
+    "eslint-plugin-promise": "^3.4.0",
+    "eslint-plugin-standard": "^2.0.1"
+  }
+}
